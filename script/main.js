@@ -8,8 +8,8 @@ import { generatePointsForArcs } from "./pointsGenerator.js";
 // ######################################
 
 const { canvasWidth, canvasHeight } = canvasProperties
-const svgCanvasId = "#svg-canvas"
-const tooltipId = "#tooltip"
+const svgCanvasSelector = "#svg-canvas"
+const tooltipSelector = "#tooltip"
 
 const senatorsZippedWithPoints = async () => {
   var senators = await fetchSenatorsSortedByParty()
@@ -28,26 +28,26 @@ const senatorsZippedWithPoints = async () => {
 
 const buildSvgCanvas = () => {
   // const svg = d3.create("svg")
-  return d3.select(svgCanvasId)
+  return d3.select(svgCanvasSelector)
     .style("canvasWidth", canvasWidth)
     .style("canvasHeight", canvasHeight)
     .attr("viewBox", [-canvasWidth / 2, -canvasHeight, canvasWidth, canvasHeight])
 }
 
 // # Actions
-var mouseover = function (event) {
+var mouseoverCallback = function (event) {
   const senatorIndex = event.srcElement.attributes.senatorIndex.value
   const senatorName = senators[senatorIndex].name
 
-  // d3.select(tooltipId)
+  // d3.select(tooltipSelector)
   //   .html(senatorName)
   //   .style("opacity", 1)
 
   d3.select(this)
     .classed("selected", true)
 }
-var mousemove = function (event) {
-  d3.select(tooltipId)
+var mousemoveCallback = function (event) {
+  d3.select(tooltipSelector)
     .style("left", () => {
       let xPoint = (canvasWidth / 2) + d3.pointer(event)[0] + 50
       // let xPoint = d3.pointer(event)[0]
@@ -59,12 +59,35 @@ var mousemove = function (event) {
       return `${yPoint}px`
     })
 }
-var mouseleave = function (d) {
-  // d3.select(tooltipId)
+var mouseleaveCallback = function (event) {
+  // d3.select(tooltipSelector)
   //   .style("opacity", 0)
 
   d3.select(this)
     .classed("selected", false)
+}
+var clickCallback = function (event) {
+  const senatorIndex = event.srcElement.attributes.senatorIndex.value
+  const senator = senators[senatorIndex]
+
+  d3.select("#info-modal-container h2")
+    .html(senator.name)
+
+  d3.select("#info-modal-container img")
+  .attr("src", "") // So it doesn't show any photo while loading
+  .attr("src", senator.photoUrl)
+
+  d3.select("#info-modal-container #full-name")
+    .html(senator.fullName)
+
+  d3.select("#info-modal-container #party-name")
+    .html(senator.party)
+
+  d3.select("#info-modal-container #uf-code")
+    .html(senator.uf)
+
+  d3.select("#info-modal-container")
+    .classed("visible", true)
 }
 
 
@@ -88,6 +111,7 @@ svg.selectAll("circle")
   .attr("r", 20)
   .attr("cx", (senator) => senator.point.x)
   .attr("cy", (senator) => senator.point.y)
-  .on("mouseover", mouseover)
-  // .on("mousemove", mousemove)
-  .on("mouseleave", mouseleave)
+  .on("mouseover", mouseoverCallback)
+  // .on("mousemove", mousemoveCallback)
+  .on("mouseleave", mouseleaveCallback)
+  .on("click", clickCallback)

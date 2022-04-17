@@ -1,7 +1,15 @@
-html, body {
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
   margin: 0;
   width: 100%;
   height: 100%;
+
+  font-family: sans-serif;
 }
 
 #svg-container {
@@ -38,4 +46,85 @@ svg#svg-canvas {
   padding: 5px;
   font-family: sans-serif;
   font-weight: bold;
+}
+
+#info-modal-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  
+  width: 100%;
+  height: 100%;
+
+  background-color: rgba(0, 0, 0, 0.3);
+  visibility: hidden;
+}
+#info-modal-container.visible {
+  visibility: visible;
+}
+
+#info-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  flex-direction: column;
+
+  width: 50%;
+  height: 40%;
+  padding: 10px 20px;
+
+  background-color: white;
+  border: 2px solid gray;
+  border-radius: 10px;
+
+  -webkit-box-shadow: 5px 4px 20px 0px rgba(0, 0, 0, 0.3);
+  -moz-box-shadow: 5px 4px 20px 0px rgba(0, 0, 0, 0.3);
+  box-shadow: 5px 4px 20px 0px rgba(0, 0, 0, 0.3);
+}
+
+#info-modal > #close-btn {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+
+  cursor: pointer;
+}
+
+#info-modal>h2 {
+  text-align: center;
+  font-size: 3em;
+  flex: auto;
+}
+
+#info-modal>#info-container {
+  display: flex;
+  flex-basis: auto;
+
+  height: 80%;
+}
+#info-modal>#info-container>#photo-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+#info-modal>#info-container>#photo-container>img {
+  height: 100%;
+  /* width: auto;
+  margin: 0 auto; */
+}
+#info-modal>#info-container>#text-info {
+  flex: 1;
+  padding-left: 20px;
+}
+#info-modal>#info-container>#text-info>.info {
+  margin-bottom: 15px;
+}
+#info-modal>#info-container>#text-info>.info>h3 {
+  font-size: 1.5em;
+  margin-bottom: 5px;
 }
