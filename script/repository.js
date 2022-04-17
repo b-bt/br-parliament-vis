@@ -1,7 +1,7 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 
 export const fetchSenatorsSortedByParty = async () => {
-  let data = await d3.json("../data.json")
+  let data = await d3.json("https://raw.githubusercontent.com/b-bt/br-parliament-vis/main/data.json")
 
   const senatorsData = data.ListaParlamentarEmExercicio.Parlamentares.Parlamentar
   const senators = senatorsData.map((senator) => mapUsableSenatorData(senator))
