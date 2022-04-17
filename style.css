@@ -29,6 +29,7 @@ svg#svg-canvas {
 }
 
 #tooltip {
+  opacity: 0;
   position: absolute;
   background-color: white;
   border: solid;

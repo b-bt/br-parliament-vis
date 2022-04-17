@@ -1,95 +1,53 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 import { partiesColors, canvasProperties, arcs } from "./constants.js"
+import { fetchSenatorsSortedByParty } from "./repository.js"
+import { generatePointsForArcs } from "./pointsGenerator.js";
 
-let data = await d3.json("../data.json")
+// ######################################
+// ### HELPER CONSTANTS AND FUNCTIONS ###
+// ######################################
 
-var senators = data["ListaParlamentarEmExercicio"]["Parlamentares"]["Parlamentar"]
-senators.sort((a, b) => {
-  if (a.IdentificacaoParlamentar.SiglaPartidoParlamentar < b.IdentificacaoParlamentar.SiglaPartidoParlamentar) {
-    return -1
-  }
-  if (b.IdentificacaoParlamentar.SiglaPartidoParlamentar < a.IdentificacaoParlamentar.SiglaPartidoParlamentar) {
-    return 1
-  }
-  return 0;
-})
-
-
+const { canvasWidth, canvasHeight } = canvasProperties
 const svgCanvasId = "#svg-canvas"
-// ## CANVAS BUILD ##
-let { canvasWidth, canvasHeight } = canvasProperties
-// const svg = d3.create("svg")
-const svg = d3.select(svgCanvasId)
-  .style("canvasWidth", canvasWidth)
-  .style("canvasHeight", canvasHeight)
-  .attr("viewBox", [-canvasWidth / 2, -canvasHeight, canvasWidth, canvasHeight])
+const tooltipId = "#tooltip"
 
-var allPoints = []
-const getPointsForArcWithProperties = (arc) => {
-  let innerRadius = arc.innerRadius
-  let outerRadius = arc.outerRadius
-  let numberOfPoints = arc.numberOfPoints
+const senatorsZippedWithPoints = async () => {
+  var senators = await fetchSenatorsSortedByParty()
+  console.log(senators);
 
-  let mainStartAngle = -(Math.PI / 2)
-  let mainEndAngle = Math.PI / 2
+  const allPoints = generatePointsForArcs(arcs)
+  console.log(allPoints)
 
-  let arcAngleSize = (mainEndAngle - mainStartAngle) / numberOfPoints
+  senators = senators.map((senator, i) => {
+    const point = allPoints[i]
+    return { ...senator, point }
+  })
 
-  var points = []
-  for (let i = 0; i < numberOfPoints; i++) {
-    let arcStartAngle = mainStartAngle + (arcAngleSize * i)
-    let arcEndAngle = arcStartAngle + arcAngleSize
-
-    const arc = d3.arc()
-      .innerRadius(innerRadius)
-      .outerRadius(outerRadius)
-      .startAngle(arcStartAngle)
-      .endAngle(arcEndAngle)
-
-    let arcCenterPoint = arc.centroid()
-    points.push({ x: arcCenterPoint[0], y: arcCenterPoint[1] })
-  }
-  return points
+  return senators
 }
 
-arcs.forEach((arc) => {
-  allPoints = allPoints.concat(getPointsForArcWithProperties(arc))
-})
+const buildSvgCanvas = () => {
+  // const svg = d3.create("svg")
+  return d3.select(svgCanvasId)
+    .style("canvasWidth", canvasWidth)
+    .style("canvasHeight", canvasHeight)
+    .attr("viewBox", [-canvasWidth / 2, -canvasHeight, canvasWidth, canvasHeight])
+}
 
-allPoints.sort((a, b) => {
-  if (a.x < b.x) {
-    return -1
-  }
-  if (a.x > b.x) {
-    return 1
-  }
-  return 0
-})
-
-senators = senators.map((senator, i) => {
-  const point = allPoints[i]
-  return { ...senator, point }
-})
-
-// ## Create a tooltip ##
-var tooltip = d3.select("body")
-  .append("div")
-  .style("opacity", 0)
-  .attr("id", "tooltip")
-
-
+// # Actions
 var mouseover = function (event) {
   const senatorIndex = event.srcElement.attributes.senatorIndex.value
-  const senatorName = senators[senatorIndex].IdentificacaoParlamentar.NomeParlamentar
+  const senatorName = senators[senatorIndex].name
 
-  tooltip
-    .html(senatorName)
-    .style("opacity", 1)
-    d3.select(this)
+  // d3.select(tooltipId)
+  //   .html(senatorName)
+  //   .style("opacity", 1)
+
+  d3.select(this)
     .classed("selected", true)
 }
 var mousemove = function (event) {
-  tooltip
+  d3.select(tooltipId)
     .style("left", () => {
       let xPoint = (canvasWidth / 2) + d3.pointer(event)[0] + 50
       // let xPoint = d3.pointer(event)[0]
@@ -102,17 +60,27 @@ var mousemove = function (event) {
     })
 }
 var mouseleave = function (d) {
-  tooltip
-    .style("opacity", 0)
+  // d3.select(tooltipId)
+  //   .style("opacity", 0)
+
   d3.select(this)
     .classed("selected", false)
 }
 
+
+// ######################################
+// ########### MAIN EXECUTION ###########
+// ######################################
+
+const senators = await senatorsZippedWithPoints()
+
+const svg = buildSvgCanvas()
 svg.selectAll("circle")
   .data(senators)
   .enter().append("circle")
   .style("fill", (senator) => {
-    let party = senator.IdentificacaoParlamentar.SiglaPartidoParlamentar
+    let party = senator.party
+    console.log(`SENATOR: ${senator}`)
     return partiesColors[party]
   })
   .attr('senatorIndex', (d, i) => i)
